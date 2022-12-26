@@ -54,8 +54,6 @@ pathFinderGroup.add(finishLine)
 
 mouse = pygame.mouse.get_pos()
 keys = pygame.key.get_pressed()
-
-
      
 while runGame: 
 
