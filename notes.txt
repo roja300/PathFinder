@@ -1,0 +1,11 @@
+draw walls
+every 10px draw a horiztonal wall
+make each wall either on the right or the left with some space at random
+random number = random(1, 2)
+if i = 1:
+right
+if i = 2:
+left
+
+space to begin
+pathfinder to do 
