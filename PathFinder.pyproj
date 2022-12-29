@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>262ca39b-4130-48c2-a13b-02fa62cf56d2</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>PathFinder.py</StartupFile>
+    <StartupFile>Alpha\PathFinder2.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,14 +21,21 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="LearningEnvironment.py" />
-    <Compile Include="sprites.py">
+    <Compile Include="Alpha\classes.py" />
+    <Compile Include="Alpha\PathFinder2.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PathFinder.py" />
+    <Compile Include="Beta\sprites.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Beta\PathFinder.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="notes.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Alpha\" />
+    <Folder Include="Beta\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
