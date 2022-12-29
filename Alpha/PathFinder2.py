@@ -1,7 +1,3 @@
-from pickle import FALSE
-from re import A
-from tkinter.tix import CELL
-from venv import create
 import pygame
 from classes import *
 
@@ -11,6 +7,9 @@ finishCellTouched = False
 wallCellsBool = False
 gridXCoordinates = []
 gridYCoordinates = []
+dynamicCellX = []
+dynamicCellY = []
+
 #colors
 white = (255,255,255)
 black = (0,0,0)
@@ -29,12 +28,12 @@ pygame.display.set_caption("Pathfinder")
 screen.fill(white)
 
 #create specific groups
+allDynamicCells = pygame.sprite.Group()
 bgCells = pygame.sprite.Group()
 wallCells = pygame.sprite.Group()
-finishCell = pygame.sprite.Group()
+endCells = pygame.sprite.Group()
 pathFinderCells = pygame.sprite.Group() 
 growthCells = pygame.sprite.Group()
-outwardGrowthCells = pygame.sprite.Group()
 
 #add all x and y axis coordinates to arrays
 def CreateGridCoordinates():
@@ -59,6 +58,7 @@ def GetGridCoordinatesIndexAndCreateWall():
                 wallCell.rect.x = gridXCoordinates[x]
                 wallCell.rect.y = gridXCoordinates[y]
                 wallCells.add(wallCell)
+                allDynamicCells.add(wallCell)
 
     global wallCellsBool
     wallCellsBool = True
@@ -87,12 +87,13 @@ startCell = GridCell(pink)
 startCell.rect.x = pathFinderCellX
 startCell.rect.y = pathFinderCellY
 pathFinderCells.add(startCell)
+growthCells.add(startCell)
 
 #create end cell
 endCell = GridCell(green)
 endCell.rect.x = gridXCoordinates[23]
 endCell.rect.y = gridYCoordinates[23]
-finishCell.add(endCell)
+endCells.add(endCell)
 
 #create path finder cell
 def CreatePathFinderCell(x, y):
@@ -120,65 +121,38 @@ def MovePathFinder(direction):
         CreatePathFinderCell(cellSpace, 0)
 
 #save distance and cost of movement
-
 growthCellX = 0
 growthCellY = 0
 
-boolCellGrowth = False
-
-def CheckFinish(x, y):
-    for finishcell in finishCell:
-        if finishcell.rect.x != x and finishcell.rect.y != y:
-            boolCellGrowth = False
-            return False
-#create array instead        
-
-def CheckWalls(x, y):
-    print("CheckWallAndBounds called")
-    if wallCellsBool == True:
-        for wallcell in wallCells:
-            if wallcell.rect.x != x and wallcell.rect.y != y:
-                return True
-            else:
-                return False
-        else:
+def CheckOldCell(x, y):
+    for e in growthCells:
+        if e.rect.x != x and e.rect.y != y:
             return True
-
-#unsure whether this is necessairy
-def IsAlreadyCell(x, y):
-    print("DontReplace called")
-    for growthcell in growthCells:
-        if growthcell.rect.x != x and growthcell.rect.y != y:
-            print("return true")
-            return False
         else:
-            print("return false")
-            return True
+            return False
+
+isFinished = False
+beginGrowth = False
 
 #create growth cells
-def CreateNewGrowthCell(x, y): 
-    if CheckWalls(x, y) != True:
-        if IsAlreadyCell(x, y) != True:
-            growthCell = GridCell(lightPink)
-            growthCell.rect.x = x
-            growthCell.rect.y = y
-            growthCells.add(growthCell)
-            outwardGrowthCells.add(growthCell)
-
-            #gioesjnjgOPIHNE
-
-        #add to most outward group
-        #it seems that cells are being create on top of eachother and that is why it's taking so long
-        #remove all from most outward group
-
-        #calculate distance from growth to finish
-        #calculate distance from start to growth
-    
-complete = True
+def CreateNewGrowthCell(x, y):
+    global isFinished
+    growthCell = GridCell(lightPink)
+    growthCell.rect.x = x
+    growthCell.rect.y = y
+    growthCollision = pygame.sprite.spritecollide(growthCell, growthCells, False)
+    wallCollision = pygame.sprite.spritecollide(growthCell, wallCells, False)
+    endCollision = pygame.sprite.spritecollide(growthCell, endCells, False)
+    if endCollision:
+        isFinished = True
+    if growthCollision or wallCollision:
+        growthCell.kill()
+    else:
+        growthCells.add(growthCell)
 
 def CellGrowthByOne():
     global complete
-    for e in outwardGrowthCells:
+    for e in growthCells:
         #from each cell create 8 surrounding cells
         growthSpaceX = e.rect.x
         growthSpaceY = e.rect.y
@@ -190,13 +164,6 @@ def CellGrowthByOne():
         CreateNewGrowthCell((growthSpaceX + 20), (growthSpaceY + 20))
         CreateNewGrowthCell((growthSpaceX + 20), growthSpaceY)
         CreateNewGrowthCell((growthSpaceX + 20), (growthSpaceY - 20))
-
-        print("GRID HAD BEEN GROWN")
-
-def GrowthFlow():
-    CellGrowthByOne()
-    #try to remove all cells and add the most outward ones
-
 #run game
 while runGame: 
     for event in pygame.event.get():
@@ -208,17 +175,20 @@ while runGame:
                 if event.key == pygame.K_SPACE:
                     print("SPACE")
                     CreateNewGrowthCell(20, 20)
-                    GrowthFlow()
+                    beginGrowth = True
     
     #create backdrop
     grid = CreateCells()
 
+    if beginGrowth == True and isFinished != True:
+        CellGrowthByOne()
+
     #draw all elements
     bgCells.draw(screen)
     wallCells.draw(screen)
-    finishCell.draw(screen)
     growthCells.draw(screen)
     pathFinderCells.draw(screen)
+    endCells.draw(screen)
 
     pygame.display.flip()
 
