@@ -165,6 +165,8 @@ def CreateNewGrowthCell(x, y):
             growthCells.add(growthCell)
             outwardGrowthCells.add(growthCell)
 
+            #gioesjnjgOPIHNE
+
         #add to most outward group
         #it seems that cells are being create on top of eachother and that is why it's taking so long
         #remove all from most outward group
