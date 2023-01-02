@@ -25,17 +25,12 @@
     <Compile Include="Alpha\PathFinder2.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Beta\sprites.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Beta\PathFinder.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="notes.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Alpha\" />
-    <Folder Include="Beta\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

@@ -1,3 +1,5 @@
+from calendar import c
+import math
 import pygame
 
 white = (255,255,255)
@@ -15,33 +17,17 @@ class GridCell(pygame.sprite.Sprite):
         self.image.fill((self.color))
   
         self.rect = self.image.get_rect()
+        self.distance = 0
 
-class PathFinderCells(pygame.sprite.Sprite):
-    def __init__(self, color):
-        super(GridCell, self).__init__()
-        self.image = pygame.Surface((19, 19))
-        self.color = color
-
-        self.image.fill((self.color))
-  
-        self.rect = self.image.get_rect()
-            
-#check if wallCell is there and identify neighrbours
-    #for i in wallCells: check rect of wall cells if!= add new cell else return
-
-#work out heuristic and distance
-    #end.rect.x - start.rect.x = numx
-    #end.rect.y - start.rect.y = numy
-    #numx*numx + numy*numy = root(ans)
-    #=distance
-    
-    #start.rect.x - growth.rect.x= numx
-    #start.rect.y - growth.rect.y = numy
-    #numx*numx + numy*numy = root(ans)
-    #=heurestic
-
-    #distance + heurestic = f
-    # add f value to each square using 3d aray (x, y, f)
-
-#go and evaluate the neighbour with the lowest f
-#move() to that square
+    def CalculateDistance(self, startX, startY, currentX, currentY, endX, endY):
+        #pythag theoreom without square root because it is unneccessairy
+        a = currentX - endX
+        b = currentY - endY
+        c = startX - currentX
+        d = startY - currentY
+        cost = complex(math.sqrt((a ** 2 + b ** 2)))
+        totalCells = a ** 2 + b ** 2
+        travelCost = complex(math.sqrt((c ** 2 + d ** 2)))
+        #when value is at a right angle the value thinks it's further away than it is
+        cost = cost.real - travelCost.real
+        return totalCells
