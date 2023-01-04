@@ -1,3 +1,4 @@
+from pdb import Restart
 from tkinter import CURRENT
 from tkinter.tix import CELL
 import pygame
@@ -16,6 +17,7 @@ recentSouth = False
 recentWest = False
 seekFinish = False
 replaceGrowth = False
+additionalPath = False
 
 #colors
 white = (255,255,255)
@@ -122,12 +124,11 @@ startCells.add(startCell)
 #create end cell
 endCell = GridCell(green)
 endCell.rect.x = gridXCoordinates[12]
-endCell.rect.y = gridYCoordinates[24]
+endCell.rect.y = gridYCoordinates[5]
 endCells.add(endCell)
 
 #create cell when there is a collision withing pathfinder
 def CreateCollisionCell(x, y):
-    
     collisionCell = GridCell(darkPurple)
     collisionCell.rect.x = x
     collisionCell.rect.y = y
@@ -142,7 +143,7 @@ def CreateCollisionCell(x, y):
             e.kill()
 
 #when there is a collision path is restarted excluding collision cells
-def RestartPath(x, y):
+def RestartPathWithCollision(x, y):
     global runGame
     global recentNorth, recentEast, recentSouth, recentWest
     for e in growthCells:
@@ -188,7 +189,7 @@ def CreatePathFinderCell(x, y):
     if pathFinderBackCollision or pathFinderCellX < 0 or pathFinderCellX > 480 or pathFinderCellY < 0 or pathFinderCellX > 480:
         print("COLLISION")
         pathFinderCell.kill()
-        RestartPath(pathFinderCellX, pathFinderCellY)
+        RestartPathWithCollision(pathFinderCellX, pathFinderCellY)
         #if x and y of current growth is not in growth add it back to growth
         pathFinderCellX = 0
         pathFinderCellY = 0
@@ -256,14 +257,23 @@ def CellGrowthByOne():
         CreateNewGrowthCell(growthSpaceX, (growthSpaceY + 20))
         CreateNewGrowthCell((growthSpaceX + 20), growthSpaceY)
 
-#if there is movement where the pathfinder must go back on itself remove that cell
+#check whether the program should complete another iteration
+def AddionalPathPointAdd():
+    global additionalPath, potentialPaths
+    if additionalPath:
+        for e in newestPathFinder:
+            print("Potential second path found...", e.rect.x, e.rect.y)
+            potentialPathPointX.append(e.rect.x)
+            potentialPathPointY.append(e.rect.y)   
+            potentialPaths = potentialPaths + 1
+
+    additionalPath = False
       
 def SeekNextCell():
     #set pathX, pathY to rect pathfindercell
-    global recentNorth, recentEast, recentSouth, recentWest, potentialPaths, pathX, pathY, pathFinderCellX, pathFinderCellY
+    global recentNorth, recentEast, recentSouth, recentWest, potentialPaths, pathX, pathY, pathFinderCellX, pathFinderCellY, additionalPath
     distanceArray = []
     findSmallestDistanceArray = []
-    nextIndex = False
 
     #gather up, down left, right growth cells
     sDistance = 10000000000
@@ -294,19 +304,25 @@ def SeekNextCell():
     findSmallestDistanceArray.sort()
     smallestDistanceIndex = (pd.Series(distanceArray).idxmin())
 
+    if findSmallestDistanceArray[0] == findSmallestDistanceArray[1] and pathX > 0 and pathY > 0:
+        additionalPath = True
+
     #horizontal & vertical movement depending on shortest distance
     if smallestDistanceIndex == 0:
+        AddionalPathPointAdd()
         MovePathFinder("north")
         recentNorth = True
         recentEast = False 
         recentSouth = False 
         recentWest = False
         pathY=-cellSpace
+
         for e in growthCells:
             for i in newestPathFinder:
                 if e.rect.x == i.rect.x and e.rect.y == i.rect.y:
                     currentGrowthCells.remove(e)
     elif smallestDistanceIndex == 1:
+        AddionalPathPointAdd()
         MovePathFinder("south")
         recentNorth = False
         recentEast = False 
@@ -318,6 +334,7 @@ def SeekNextCell():
                 if e.rect.x == i.rect.x and e.rect.y == i.rect.y:
                     currentGrowthCells.remove(e)
     elif smallestDistanceIndex == 2:
+        AddionalPathPointAdd()
         MovePathFinder("east")
         recentNorth = False
         recentEast = True 
@@ -329,6 +346,7 @@ def SeekNextCell():
                 if e.rect.x == i.rect.x and e.rect.y == i.rect.y:
                     currentGrowthCells.remove(e)
     elif smallestDistanceIndex == 3:
+        AddionalPathPointAdd()
         MovePathFinder("west")
         recentNorth = False
         recentEast = False 
@@ -340,11 +358,27 @@ def SeekNextCell():
                 if e.rect.x == i.rect.x and e.rect.y == i.rect.y:
                     currentGrowthCells.remove(e)
 
-    if findSmallestDistanceArray[0] == findSmallestDistanceArray[1] and pathX > 0 and pathY > 0:
-        print("Potential second path found...", pathX, pathY)
-        potentialPathPointX.append(pathX)
-        potentialPathPointY.append(pathY)
-        potentialPaths = potentialPaths + 1
+def WipeAndNewIteration():
+    for e in pathFinderCells:
+        e.kill()
+    for e in newestPathFinder:
+        e.kill()
+
+    CreatePathFinderCell(240, 0)
+
+counter = 0
+
+def CheckForAdditionalIteration():
+    global seekFinish, potentialPaths, pathsFound
+    print(potentialPathPointX, potentialPathPointY)
+    if all(potentialPathPointX):
+        print("ANOTHER ITERATION")
+        print("POTENTIAL PATHS:", potentialPaths)
+        print("PATHS FOUND:", pathsFound)
+        WipeAndNewIteration()
+        seekFinish = True
+
+finishedIteration = False
 
 #run game
 while runGame: 
@@ -375,20 +409,21 @@ while runGame:
                 if e.rect.x - 20 == i.rect.x and e.rect.y == i.rect.y:
                     print("PATH FOUND")
                     seekFinish = False
+                    finishedIteration = True
                 if e.rect.x + 20 == i.rect.x and e.rect.y == i.rect.y:
                     print("PATH FOUND")
                     seekFinish = False
+                    finishedIteration = True
                 if e.rect.x == i.rect.x and e.rect.y == i.rect.y  + 20 :
                     print("PATH FOUND")
                     seekFinish = False
+                    finishedIteration = True
                 if e.rect.x == i.rect.x and e.rect.y == i.rect.y - 20:
                     print("PATH FOUND")
                     seekFinish = False
-                if seekFinish == False:
-                    cellsMovedArray.append(cellsMoved)
-                    print(cellsMovedArray)
+                    finishedIteration = True
+                    
                 
-
     #draw all elements
     bgCells.draw(screen)
     wallCells.draw(screen)
@@ -397,6 +432,12 @@ while runGame:
     pathFinderCells.draw(screen)
     startCells.draw(screen)
     collisionCells.draw(screen)
+
+    if seekFinish == False and finishedIteration == True:
+        CheckForAdditionalIteration()
+        cellsMovedArray.append(cellsMoved)
+        print(cellsMovedArray)
+        finishedIteration = False
 
     pygame.display.flip()
 
